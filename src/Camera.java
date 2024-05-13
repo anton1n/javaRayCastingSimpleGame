@@ -28,6 +28,10 @@ class Camera extends JPanel {
 
     private List<Enemy> enemies = new ArrayList<>();
 
+    private CollisionManager collisionManager = new CollisionManager(sprites, enemies);
+
+    private Weapon weapon;
+
     public Camera(int[][] map, Textures textures) {
         this.map = map;
         //this.keys = keys;
@@ -35,6 +39,10 @@ class Camera extends JPanel {
 
         player = new Player(22, 12, -1, 0, 0, 0.66);
         keyboard = new KeyboardComponent();
+
+        //weapon = new Weapon("slash.png", 4 ,100, 125, 129 );
+        weapon = new Weapon("swordAnim.png", 4 ,100, 378
+                , 283 );
 
         setDoubleBuffered(true);
         setFocusable(true);
@@ -55,7 +63,9 @@ class Camera extends JPanel {
         sprites.add(new SpriteComponent(20, 15, false, 1));
         sprites.add(new SpriteComponent(20, 19, false, 2));
 
-        enemies.add(new Enemy(15, 15, 9));
+        enemies.add(new Enemy(15, 15, "skeleton.png", 4, 94, 132, 100));
+        //enemies.add(new Enemy(15, 15, 9));
+
     }
 
     @Override
@@ -69,11 +79,15 @@ class Camera extends JPanel {
 
         render(offscreenImage.createGraphics());
         g.drawImage(offscreenImage, 0, 0, this);
+        //weapon.render(g);
     }
 
     private void render(Graphics g) {
+
         int width = getWidth();
         int height = getHeight();
+
+        double[] zBuffer = new double[width];
 
         g.setColor(Color.BLACK);
         //g.setColor(Color.GREEN.darker().darker().darker().darker().darker().darker());
@@ -139,6 +153,8 @@ class Camera extends JPanel {
             if (side == 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
             else perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
 
+            zBuffer[x] = perpWallDist;
+
             int lineHeight = (int) (height / perpWallDist);
             int drawStart = Math.max(-lineHeight / 2 + height / 2, 0);
             int drawEnd = Math.min(lineHeight / 2 + height / 2, height);
@@ -169,20 +185,21 @@ class Camera extends JPanel {
                 g.drawLine(x, y, x, y);
             }
         }
-        //sortAndRenderSprites(g);
+        sortAndRenderSprites(g, zBuffer);
 
         for (Enemy enemy : enemies) {
-            enemy.render(g, this);  // Render each enemy
+            enemy.render(g, this, zBuffer);
         }
+
+        int weaponX = getWidth() / 2 - weapon.width / 2;
+        int weaponY = getHeight() - weapon.height + 20;
+        weapon.render(g, weaponX, weaponY);
 
         g.dispose();
     }
 
-    public void update() {
 
-        for (Enemy enemy : enemies) {
-            enemy.update(player);  // Move each enemy towards the player
-        }
+    public void update() {
 
         System.out.println("update");
 
@@ -191,6 +208,25 @@ class Camera extends JPanel {
         System.out.println("move");
 
         PositionComponent pos = player.getComponent(PositionComponent.class);
+
+        DimensionsComponent playerDims = player.getComponent(DimensionsComponent.class);
+        Rectangle playerBox = new Rectangle(
+                (int) pos.x - playerDims.getWidth() / 2,
+                (int) pos.y - playerDims.getHeight() / 2,
+                playerDims.getWidth(),
+                playerDims.getHeight()
+        );
+
+        for (Enemy enemy : enemies) {
+            Rectangle enemyBox = enemy.getBounds();
+            if (collisionManager.checkCollision(playerBox, enemyBox)) {
+                System.out.println("Collision between " + playerBox + " and " + enemyBox);
+            }
+            else{
+                enemy.update(player);
+            }
+        }
+
 
         if (keyboard.isKeyPressed(KeyEvent.VK_W)) {
             if (map[(int) (pos.x + player.getDirX() * moveSpeed)][(int) (pos.y)] == 0)
@@ -224,6 +260,12 @@ class Camera extends JPanel {
         } else if (keyboard.isKeyPressed(KeyEvent.VK_RIGHT)) {
             rotate(-rotSpeed);
         }
+
+        if (keyboard.isKeyPressed(KeyEvent.VK_ENTER)){
+            weapon.startAnimation();
+            System.out.println("weapon ");
+        }
+        weapon.update();
     }
 
     public void keyPressed(int keyCode) {
@@ -252,7 +294,7 @@ class Camera extends JPanel {
         player.updatePlaneY(newPlaneY);
     }
 
-    private void sortAndRenderSprites(Graphics g) {
+    private void sortAndRenderSprites(Graphics g, double[] zBuffer) {
         Collections.sort(sprites, (s1, s2) -> {
             double d1 = Math.pow(s1.x - player.getComponent(PositionComponent.class).x, 2) + Math.pow(s1.y - player.getComponent(PositionComponent.class).y, 2);
             double d2 = Math.pow(s2.x - player.getComponent(PositionComponent.class).x, 2) + Math.pow(s2.y - player.getComponent(PositionComponent.class).y, 2);
@@ -260,11 +302,11 @@ class Camera extends JPanel {
         });
 
         for (SpriteComponent sprite : sprites) {
-            renderSprite(g, sprite);
+            renderSprite(g, sprite, zBuffer);
         }
     }
 
-    public void renderSprite(Graphics g, SpriteComponent sprite) {
+    public void renderSprite(Graphics g, SpriteComponent sprite, double[] zBuffer) {
         PositionComponent camPos = player.getComponent(PositionComponent.class);
         double posX = camPos.x;
         double posY = camPos.y;
@@ -294,15 +336,22 @@ class Camera extends JPanel {
         int drawStartX = Math.max(-spriteWidth / 2 + spriteScreenX, 0);
         int drawEndX = Math.min(spriteWidth / 2 + spriteScreenX, getWidth());
 
-        BufferedImage texture = textureManager.getTextureImage(sprite.textureId);
-        if (texture == null) {
-            System.out.println("Texture not found for ID: " + sprite.textureId);
-            return;
+        BufferedImage texture = null;
+
+        if(!sprite.animated){
+            texture = textureManager.getTextureImage(sprite.textureId);
+            if (texture == null) {
+                System.out.println("Texture not found for ID: " + sprite.textureId);
+                return;
+            }
+        }
+        else{
+            texture = sprite.getCurrentFrame();
         }
 
         for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
             int texX = (256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texture.getWidth() / spriteWidth) / 256;
-            if (transformY > 0 && stripe > 0 && stripe < getWidth()) {
+            if (transformY > 0 && transformY < zBuffer[stripe] && stripe > 0 && stripe < getWidth()) {
                 for (int y = drawStartY; y < drawEndY; y++) {
                     int d = (y - drawStartY) * 256;
                     int texY = ((d * texture.getHeight()) / spriteHeight) / 256;

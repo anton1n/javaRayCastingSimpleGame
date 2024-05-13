@@ -26,23 +26,25 @@ public class Tests extends JPanel {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Textures tex = new Textures();
-            tex.tileHeight = 64;
-            tex.tileWidth = 64;
-            tex.loadTiles("wolftextures.png");
-            int[] textureData = tex.getTexture(1);
-
-            if (textureData != null) {
-                JFrame frame = new JFrame("Texture Display");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.add(new Tests(textureData));
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-            } else {
-                System.out.println("Texture data not found or loading failed.");
-            }
-        });
+//        SwingUtilities.invokeLater(() -> {
+//            Textures tex = new Textures();
+//            tex.tileHeight = 64;
+//            tex.tileWidth = 64;
+//            tex.loadTiles("wolftextures.png");
+//            int[] textureData = tex.getTexture(1);
+//
+//            if (textureData != null) {
+//                JFrame frame = new JFrame("Texture Display");
+//                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//                frame.add(new Tests(textureData));
+//                frame.pack();
+//                frame.setLocationRelativeTo(null);
+//                frame.setVisible(true);
+//            } else {
+//                System.out.println("Texture data not found or loading failed.");
+//            }
+//        });
+        int cores = Runtime.getRuntime().availableProcessors();
+        System.out.println(cores);
     }
 }

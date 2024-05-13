@@ -10,6 +10,7 @@ public class Player extends Entity {
 
 
         this.addComponent(new PositionComponent(startX, startY));
+        this.addComponent(new DimensionsComponent(2, 2));
     }
 
     public double getDirX() { return dirX; }

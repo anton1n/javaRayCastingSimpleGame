@@ -1,7 +1,11 @@
 public class HealthComponent implements Component {
-    public int health;
+    private int health;
 
     public HealthComponent(int health) {
         this.health = health;
     }
+
+    public int getHealth(){return health;}
+    public void setHealth(int hp){health=hp;}
+
 }
