@@ -1,16 +1,18 @@
+import org.w3c.dom.css.Rect;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 class Camera extends JPanel {
-    private final int[][] map;
+    private int[][] map;
 
     private Textures textureManager;
 
@@ -32,12 +34,23 @@ class Camera extends JPanel {
 
     private Weapon weapon;
 
-    public Camera(int[][] map, Textures textures) {
-        this.map = map;
-        //this.keys = keys;
-        this.textureManager = textures;
+    private SoundManager soundManager;
 
-        player = new Player(22, 12, -1, 0, 0, 0.66);
+    private List<Item> items = new ArrayList<Item>();
+
+    private Inventory inventory;
+
+    private List<Door> doors = new ArrayList<Door>();
+    private int level = 1;
+
+    public Camera() throws FileNotFoundException {
+
+        this.textureManager= new Textures();
+        textureManager.loadTiles("tilemap01.png");
+        textureManager.loadTile("enemy01.png");
+
+        //player = new Player(22, 12, -1, 0, 0, 0.66);
+        player = new Player(20, 8, -1, 0, 0, 0.66);
         keyboard = new KeyboardComponent();
 
         //weapon = new Weapon("slash.png", 4 ,100, 125, 129 );
@@ -52,7 +65,7 @@ class Camera extends JPanel {
         offscreenImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 
 
-        //temporary
+        //meh
         try {
             img1 = ImageIO.read(new File("forest.png"));
         } catch (IOException e) {
@@ -60,19 +73,39 @@ class Camera extends JPanel {
         }
         //
 
-        sprites.add(new SpriteComponent(20, 15, false, 1));
-        sprites.add(new SpriteComponent(20, 19, false, 2));
+        //sprites.add(new SpriteComponent(20, 15, false, 1));
+        //sprites.add(new SpriteComponent(20, 19, false, 2));
 
-        enemies.add(new Enemy(15, 15, "skeleton.png", 4, 94, 132, 100));
+//        EnumMap<State, Integer> frameCounts = new EnumMap<>(State.class);
+//        frameCounts.put(State.attacking, 6);
+//        frameCounts.put(State.idle, 5);
+//        frameCounts.put(State.damaged, 1);
+//        frameCounts.put(State.walking, 4);
+        //frameCounts.put(State.dead, 1);
+
+        //
+        //enemies.add(new Enemy(15, 15, "skeletonSprites1.png", frameCounts, 105, 155, 100));
+
+
+        //enemies.add(new Enemy(15, 15, "skeleton.png", 4, 94, 132, 100));
         //enemies.add(new Enemy(15, 15, 9));
 
+        SoundManager soundManager = new SoundManager();
+        soundManager.loadSound("background", "backgroundMusic.wav");
+        soundManager.loopSound("background");
+
+       // items.add(new Item(22, 20, 4, textureManager));
+
+        inventory = new Inventory();
+
+        this.map = textureManager.readMap("level1.txt", enemies, sprites, items, textureManager, doors);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         //render(g);
-        System.out.println("paint");
+        //System.out.println("paint");
         if (offscreenImage.getWidth() != getWidth() || offscreenImage.getHeight() != getHeight()) {
             offscreenImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
         }
@@ -96,6 +129,10 @@ class Camera extends JPanel {
         //this is temporary, i'm too lazzy to implement horizontal scanlines now
         g.drawImage(img1, 0, 0, width, height/2 + 25,  null);
         //
+
+//        for(Item item : items){
+//            item.render(g);
+//        }
 
         PositionComponent pos = player.getComponent(PositionComponent.class);
         double posX = pos.x;
@@ -201,29 +238,75 @@ class Camera extends JPanel {
 
     public void update() {
 
-        System.out.println("update");
+        //System.out.println("update");
 
         double moveSpeed = 0.1;
         double rotSpeed = 0.05;
-        System.out.println("move");
+        //System.out.println("move");
 
         PositionComponent pos = player.getComponent(PositionComponent.class);
+        Rectangle playerBounds = player.getBounds();
 
         DimensionsComponent playerDims = player.getComponent(DimensionsComponent.class);
-        Rectangle playerBox = new Rectangle(
-                (int) pos.x - playerDims.getWidth() / 2,
-                (int) pos.y - playerDims.getHeight() / 2,
-                playerDims.getWidth(),
-                playerDims.getHeight()
-        );
+        //Rectangle playerBox = player.getBounds();
+
+        List<Enemy> toRemove = new ArrayList<>();
+
+        //improve this!
+        if (player.getComponent(AttackComponent.class).isAttacking()) {
+            for (Enemy enemy : enemies) {
+                if (collisionManager.checkCollision(playerBounds, enemy.getBounds())) {
+                    player.getComponent(AttackComponent.class).attack(enemy.getComponent(HealthComponent.class));
+                    //System.out.println(enemy.getComponent(HealthComponent.class).getHealth());
+                    if (enemy.getComponent(HealthComponent.class).getHealth() <= 0) {
+                        toRemove.add(enemy);
+                    }
+                    System.out.println("Enemy hit! ");
+                    player.getComponent(AttackComponent.class).setAttacking(false);
+                }
+            }
+        }
+        enemies.removeAll(toRemove);
 
         for (Enemy enemy : enemies) {
-            Rectangle enemyBox = enemy.getBounds();
-            if (collisionManager.checkCollision(playerBox, enemyBox)) {
-                System.out.println("Collision between " + playerBox + " and " + enemyBox);
+//            Rectangle enemyBox = enemy.getBounds();
+//            if (collisionManager.checkCollision(playerBox, enemyBox)) {
+//                //System.out.println("Collision between " + playerBox + " and " + enemyBox);
+//            }
+//            else{
+//
+//            }
+            enemy.update(player);
+        }
+
+//        Iterator<Item> itemIterator = items.iterator();
+//        while (itemIterator.hasNext()) {
+//            Item item = itemIterator.next();
+//            if (CollisionManager.checkCollision(player.getBounds(), item.getBounds())) {
+//                inventory.addItem(item);
+//                itemIterator.remove();
+//                System.out.println("Item collected!");
+//            }
+//        }
+
+        for(Item item : items){
+            if (CollisionManager.checkCollision(playerBounds, item.getBounds())) {
+                inventory.addItem(item);
+                items.remove(item);
+                System.out.println("Item collected!");
+                break;
             }
-            else{
-                enemy.update(player);
+        }
+
+
+        for (Door door : doors) {
+            PositionComponent doorPos = door.getComponent(PositionComponent.class);
+            if (CollisionManager.checkCollision(playerBounds, door.getBounds())) {
+                door.interact(inventory, map);
+                if(door.isOpen()){
+                    loadNextLevel();
+                    break;
+                }
             }
         }
 
@@ -263,13 +346,22 @@ class Camera extends JPanel {
 
         if (keyboard.isKeyPressed(KeyEvent.VK_ENTER)){
             weapon.startAnimation();
-            System.out.println("weapon ");
+            //System.out.println("weapon ");
         }
         weapon.update();
+
+
+        //player.getComponent(AttackComponent.class).setAttacking(weapon.isAnimating());
+
     }
 
     public void keyPressed(int keyCode) {
         keyboard.pressKey(keyCode);
+        if (keyboard.isKeyPressed(KeyEvent.VK_ENTER)) {
+            if (!player.getComponent(AttackComponent.class).isAttacking()) {
+                player.getComponent(AttackComponent.class).setAttacking(true);
+            }
+        }
     }
 
     public void keyReleased(int keyCode) {
@@ -295,13 +387,24 @@ class Camera extends JPanel {
     }
 
     private void sortAndRenderSprites(Graphics g, double[] zBuffer) {
+        List<SpriteComponent> allSprites = new ArrayList<>(sprites);
+        for (Item item : items) {
+            if(item.hasComponent(SpriteComponent.class))
+                allSprites.add(item.getSprite());
+        }
+
+        for(Door door : doors){
+            if(door.hasComponent(SpriteComponent.class))
+                allSprites.add(door.getSprite());
+        }
+
         Collections.sort(sprites, (s1, s2) -> {
             double d1 = Math.pow(s1.x - player.getComponent(PositionComponent.class).x, 2) + Math.pow(s1.y - player.getComponent(PositionComponent.class).y, 2);
             double d2 = Math.pow(s2.x - player.getComponent(PositionComponent.class).x, 2) + Math.pow(s2.y - player.getComponent(PositionComponent.class).y, 2);
             return Double.compare(d2, d1); // Sort in descending order to render farthest to nearest
         });
 
-        for (SpriteComponent sprite : sprites) {
+        for (SpriteComponent sprite : allSprites) {
             renderSprite(g, sprite, zBuffer);
         }
     }
@@ -364,6 +467,46 @@ class Camera extends JPanel {
             }
         }
     }
+
+    private void checkPlayerAttacks() {
+        if (player.getComponent(AttackComponent.class).isAttacking()) {
+            for (Enemy enemy : enemies) {
+                if (collisionManager.checkCollision(player.getBounds(), enemy.getBounds())) {
+                    player.getComponent(AttackComponent.class).attack(enemy.getComponent(HealthComponent.class));
+                }
+            }
+        }
+    }
+
+    private void checkEnemyAttacks() {
+        for (Enemy enemy : enemies) {
+            if (enemy.getComponent(AttackComponent.class).isAttacking()) {
+                if (collisionManager.checkCollision(enemy.getBounds(), player.getBounds())) {
+                    enemy.getComponent(AttackComponent.class).attack(player.getComponent(HealthComponent.class));
+                }
+            }
+        }
+    }
+
+    public Inventory getInventory(){return inventory;}
+
+    private void loadNextLevel() {
+        System.out.println("Loading next level...");
+        try {
+            level++;
+            String next_level = "level" + Integer.toString(level) + ".txt";
+
+            enemies.clear();
+            sprites.clear();
+            doors.clear();
+
+            this.map = textureManager.readMap(next_level, enemies, sprites, items, textureManager, doors);
+            System.out.println("Next level loaded successfully.");
+        } catch (FileNotFoundException e) {
+            System.out.println("Failed to load the next level: " + e.getMessage());
+        }
+    }
+
     public void startGameLoop() {
         Thread gameThread = new Thread(() -> {
             while (true) {

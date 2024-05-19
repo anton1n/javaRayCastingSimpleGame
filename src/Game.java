@@ -6,13 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Game extends JFrame implements KeyListener {
+public class Game extends JFrame implements KeyListener, MenuActionListener {
     private static final int WIDTH = 1024;
     private static final int HEIGHT = 768;
 
     private boolean running = true;
     private Camera canvas;
-    //private List<Enemy> enemies = new ArrayList<>();
 
     private CardLayout cardLayout = new CardLayout();
     private JPanel cardPanel = new JPanel(cardLayout);
@@ -23,6 +22,41 @@ public class Game extends JFrame implements KeyListener {
     private MenuPanel menuPanel;
 
     private static Game gameInstance = null;
+
+    private Inventory inventory = new Inventory();
+    private InventoryPanel inventoryPanel;
+
+
+    @Override
+    public void onSave() {
+        System.out.println("Save the game state");
+    }
+
+    @Override
+    public void onLoad() {
+        System.out.println("Load a game state");
+    }
+
+    @Override
+    public void onExit() {
+        System.exit(0);
+    }
+
+    @Override
+    public void onInventory() {
+        System.out.println("Inventory selected");
+        cardLayout.show(cardPanel, "Inventory");
+        currentCard = "Inventory";
+        inventoryPanel.setVisible(true);
+        inventoryPanel.requestFocusInWindow();
+    }
+
+    @Override
+    public void onExitMenu() {
+        cardLayout.show(cardPanel, "Game");
+        currentCard = "Game";
+        canvas.requestFocusInWindow();
+    }
 
     public Game() throws IOException {
         setTitle("Raycasting Engine");
@@ -39,24 +73,30 @@ public class Game extends JFrame implements KeyListener {
         titleScreen.setFocusable(true);
         cardPanel.add(titleScreen, "Title");
 
-        // Initialize and add game canvas
-        Textures tex = new Textures();
-        tex.loadTiles("tilemap01.png");
-        tex.loadTile("enemy01.png");
-        int[][] map = tex.readMap("map.txt");
 
-        canvas = new Camera(map, tex);
+
+        canvas = new Camera();
         canvas.addKeyListener(this);
         cardPanel.add(canvas, "Game");
-
-        menuPanel = new MenuPanel();
+//
+//        menuPanel = new MenuPanel();
+//        menuPanel.addKeyListener(this);
+//        cardPanel.add(menuPanel, "Menu");
+//
+//        // Initially show the title screen
+//        cardLayout.show(cardPanel, "Title");
+//        titleScreen.requestFocus();
+        menuPanel = new MenuPanel(this);
         menuPanel.addKeyListener(this);
+        menuPanel.setFocusable(true);
         cardPanel.add(menuPanel, "Menu");
 
-        // Initially show the title screen
         cardLayout.show(cardPanel, "Title");
-        titleScreen.requestFocus();
         setVisible(true);
+
+        inventory = canvas.getInventory();
+        inventoryPanel = new InventoryPanel(inventory, this);
+        cardPanel.add(inventoryPanel, "Inventory");
     }
 
     @Override
@@ -85,7 +125,7 @@ public class Game extends JFrame implements KeyListener {
                     currentCard = "Game";
                     canvas.requestFocusInWindow();
                 } else {
-                    menuPanel.keyPressed(e);  // Delegate key handling to the menu panel
+                    menuPanel.keyPressed(e);  
                 }
                 break;
         }

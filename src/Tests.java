@@ -44,7 +44,20 @@ public class Tests extends JPanel {
 //                System.out.println("Texture data not found or loading failed.");
 //            }
 //        });
-        int cores = Runtime.getRuntime().availableProcessors();
-        System.out.println(cores);
+        //int cores = Runtime.getRuntime().availableProcessors();
+        //System.out.println(cores);
+
+        SoundManager soundManager = new SoundManager();
+        soundManager.loadSound("background", "backgroundMusic.wav");
+        soundManager.loopSound("background");
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        soundManager.close();
+
     }
 }

@@ -19,6 +19,10 @@ public class Entity {
         return componentClass.cast(components.get(componentClass));
     }
 
+    public boolean hasComponent(Class<? extends Component> componentClass) {
+        return components.containsKey(componentClass);
+    }
+
     public <T extends Component> void addComponent(T component) {
         components.put(component.getClass(), component);
     }

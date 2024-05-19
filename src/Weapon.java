@@ -68,4 +68,6 @@ public class Weapon {
             g.drawImage(currentImage, x, y, null);
         }
     }
+
+    public boolean isAnimating(){return isAnimating;}
 }

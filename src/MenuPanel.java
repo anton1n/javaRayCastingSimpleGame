@@ -13,7 +13,10 @@ public class MenuPanel extends JPanel implements KeyListener {
     private int currentSelection = 0;
     private BufferedImage menuImage;
 
-    public MenuPanel() {
+    private MenuActionListener actionListener;
+
+    public MenuPanel(MenuActionListener listener) {
+        this.actionListener = listener;
         setFocusable(true);
         try {
             menuImage = ImageIO.read(new File("protagonist01.png"));
@@ -39,6 +42,7 @@ public class MenuPanel extends JPanel implements KeyListener {
                 }
             }
         });
+
     }
 
     @Override
@@ -56,16 +60,16 @@ public class MenuPanel extends JPanel implements KeyListener {
     private void selectOption() {
         switch (currentSelection) {
             case 0:
-                System.out.println("Save selected");
+                actionListener.onSave();
                 break;
             case 1:
-                System.out.println("Load selected");
+                actionListener.onLoad();
                 break;
             case 2:
-                System.exit(0);
+                actionListener.onExit();
                 break;
             case 3:
-                System.out.println("Inventory selected");
+                actionListener.onInventory();
                 break;
         }
     }
@@ -94,14 +98,12 @@ public class MenuPanel extends JPanel implements KeyListener {
                 int imageWidth = menuImage.getWidth();
                 int imageHeight = menuImage.getHeight();
 
-
                 double scaleWidth = (double) (width / 2) / imageWidth;
                 double scaleHeight = (double) height / imageHeight;
                 double scale = Math.min(scaleWidth, scaleHeight);
 
                 int scaledWidth = (int) (imageWidth * scale);
                 int scaledHeight = (int) (imageHeight * scale);
-
 
                 int x = width / 2 + (width / 2 - scaledWidth) / 2;
                 int y = (height - scaledHeight) / 2;

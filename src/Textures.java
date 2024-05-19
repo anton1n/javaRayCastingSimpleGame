@@ -4,9 +4,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
+import java.util.List;
 
 public class Textures {
 
@@ -99,16 +98,45 @@ public class Textures {
         }
     }
 
-    public int[][] readMap(String filePath) throws FileNotFoundException {
-        int mapHeight = 24;
-        int mapWidth = 24;
+    public int[][] readMap(String filePath, List<Enemy> enemies, List<SpriteComponent> sprites, List<Item> items, Textures tex, List<Door> doors) throws FileNotFoundException {
+        int mapHeight = 30;
+        int mapWidth = 38;
         int[][] map = new int[mapHeight][mapWidth];
+        int val;
+
+        EnumMap<State, Integer> frameCounts = new EnumMap<>(State.class);
+        frameCounts.put(State.attacking, 6);
+        frameCounts.put(State.idle, 5);
+        frameCounts.put(State.damaged, 1);
+        frameCounts.put(State.walking, 4);
 
         try (Scanner scanner = new Scanner(new File(filePath))) {
             for (int i = 0; i < mapHeight; i++) {
                 for (int j = 0; j < mapWidth; j++) {
                     if (scanner.hasNextInt()) {
-                        map[i][j] = scanner.nextInt();
+                        val = scanner.nextInt();
+
+                        if(val == 99){
+                            enemies.add(new Enemy(i, j, "skeletonSprites1.png", frameCounts, 105, 155, 100));                            map[i][j] = 0;
+                        }
+                        else if(val == 88){
+                            items.add(new Item(i, j, 4, tex, "key"));
+                            map[i][j] = 0;
+                        }
+                        else if(val == 87){
+                            items.add(new Item(i, j, 4, tex, "final_key"));
+                            map[i][j] = 0;
+                        }
+                        else if(val == 77){
+                            doors.add(new Door(i,j,"key", map, "door"));
+                        }
+                        else if(val == 76){
+                            doors.add(new Door(i,j,"final_key", map, "final_door"));
+                        }
+                        else{
+                            map[i][j] = val;
+                        }
+
                     }
                 }
             }

@@ -10,7 +10,7 @@ public class CollisionManager {
         this.enemies = enemies;
     }
 
-    public boolean checkCollision(Rectangle box1, Rectangle box2) {
+    public static boolean checkCollision(Rectangle box1, Rectangle box2) {
         return box1.intersects(box2);
     }
 

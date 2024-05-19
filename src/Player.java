@@ -1,6 +1,8 @@
+import java.awt.*;
+
 public class Player extends Entity {
-    private double dirX, dirY;  // Direction vector
-    private double planeX, planeY;  // Camera plane
+    private double dirX, dirY;
+    private double planeX, planeY;
 
     public Player(double startX, double startY, double dirX, double dirY, double planeX, double planeY) {
         this.dirX = dirX;
@@ -11,6 +13,8 @@ public class Player extends Entity {
 
         this.addComponent(new PositionComponent(startX, startY));
         this.addComponent(new DimensionsComponent(2, 2));
+        this.addComponent(new AttackComponent(1, 0));
+        addComponent(new HealthComponent(100, this::onDeath));
     }
 
     public double getDirX() { return dirX; }
@@ -26,6 +30,21 @@ public class Player extends Entity {
     public void updateDirection(double deltaDirX, double deltaDirY) {
         this.dirX += deltaDirX;
         this.dirY += deltaDirY;
+    }
+
+    public Rectangle getBounds(){
+        PositionComponent pos = getComponent(PositionComponent.class);
+        DimensionsComponent playerDims = getComponent(DimensionsComponent.class);
+        return new Rectangle(
+                (int) pos.x - playerDims.getWidth() / 2,
+                (int) pos.y - playerDims.getHeight() / 2,
+                playerDims.getWidth(),
+                playerDims.getHeight()
+        );
+    }
+
+    private void onDeath(HealthComponent healthComponent) {
+        System.out.println("Player died");
     }
 
 }
