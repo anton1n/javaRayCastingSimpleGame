@@ -6,12 +6,15 @@ public class Item extends Entity {
     Textures texManager = null;
     String itemName;
 
+    int texId;
+
     public Item(double x, double y, int texId, Textures tex, String name) {
         addComponent(new PositionComponent(x, y));
         addComponent(new SpriteComponent(x, y, false, texId));
         addComponent(new DimensionsComponent(2, 2));
         texManager = tex;
         itemName = name;
+        this.texId=texId;
     }
 
     public PositionComponent getPosition() {
@@ -34,4 +37,6 @@ public class Item extends Entity {
     }
 
     public String getItemName(){return itemName;}
+
+    public int getTexId(){return texId;}
 }

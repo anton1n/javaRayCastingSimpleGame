@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 
@@ -42,6 +43,8 @@ class Camera extends JPanel {
 
     private List<Door> doors = new ArrayList<Door>();
     private int level = 1;
+
+    private SaveManager saveManager;
 
     public Camera() throws FileNotFoundException {
 
@@ -99,6 +102,10 @@ class Camera extends JPanel {
         inventory = new Inventory();
 
         this.map = textureManager.readMap("level1.txt", enemies, sprites, items, textureManager, doors);
+
+        this.saveManager = new SaveManager("saves.db");
+
+        //saveManager.printDatabase();
     }
 
     @Override
@@ -353,6 +360,21 @@ class Camera extends JPanel {
 
         //player.getComponent(AttackComponent.class).setAttacking(weapon.isAnimating());
 
+        if(keyboard.isKeyPressed(KeyEvent.VK_Q)){
+            String saveName = "Save_" + System.currentTimeMillis();
+            saveManager.saveGame(saveName, player.getComponent(PositionComponent.class).x,
+                    player.getComponent(PositionComponent.class).y,
+                    player.getComponent(HealthComponent.class).getHealth(),
+                     level, enemies, items, inventory);
+            System.out.println("Game saved as: " + saveName);
+        }
+        if(keyboard.isKeyPressed(KeyEvent.VK_E)){
+            saveManager.printDatabase();
+        }
+
+        if(keyboard.isKeyPressed(KeyEvent.VK_L)){
+            loadGame();
+        }
     }
 
     public void keyPressed(int keyCode) {
@@ -363,6 +385,7 @@ class Camera extends JPanel {
             }
         }
     }
+
 
     public void keyReleased(int keyCode) {
         keyboard.releaseKey(keyCode);
@@ -492,7 +515,7 @@ class Camera extends JPanel {
 
     private void loadNextLevel() {
         System.out.println("Loading next level...");
-        try {
+    try {
             level++;
             String next_level = "level" + Integer.toString(level) + ".txt";
 
@@ -504,6 +527,32 @@ class Camera extends JPanel {
             System.out.println("Next level loaded successfully.");
         } catch (FileNotFoundException e) {
             System.out.println("Failed to load the next level: " + e.getMessage());
+        }
+    }
+
+    public void loadGame()
+    {
+        GameState gameState;
+        try {
+            gameState = saveManager.loadGame("Save_1716191920509", textureManager);
+
+            level = gameState.level - 1;
+            loadNextLevel();
+
+            items = gameState.items;
+            enemies = gameState.enemies;
+
+            inventory.getItems().clear();
+            for(Item item : gameState.inventory.getItems()){
+                inventory.addItem(item);
+            }
+
+            player.getComponent(HealthComponent.class).setHealth(gameState.health);
+            player.getComponent(PositionComponent.class).x = gameState.playerX;
+            player.getComponent(PositionComponent.class).y = gameState.playerY;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -523,4 +572,13 @@ class Camera extends JPanel {
         gameThread.start();
     }
 
+}
+
+class GameState {
+    double playerX, playerY;
+    int health;
+    int level;
+    List<Enemy> enemies;
+    List<Item> items;
+    Inventory inventory;
 }
