@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,17 +30,32 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
 
     @Override
     public void onSave() {
-        System.out.println("Save the game state");
+        //System.out.println("Save the game state");
+        canvas.saveGame();
     }
 
     @Override
-    public void onLoad() {
-        System.out.println("Load a game state");
+    public void onLoad(String name) {
+
+        canvas.loadGame(name);
     }
 
     @Override
     public void onExit() {
         System.exit(0);
+    }
+
+    @Override
+    public ArrayList<String> onLoadSaves() throws SQLException {
+        SaveManager saveManager = new SaveManager("saves.db");
+        return saveManager.loadSaveNames();
+    }
+
+
+    @Override
+    public void onDeleteSave(String saveName) throws SQLException {
+        SaveManager saveManager = new SaveManager("saves.db");
+        saveManager.deleteSave(saveName);
     }
 
     @Override

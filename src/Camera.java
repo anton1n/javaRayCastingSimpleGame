@@ -360,21 +360,13 @@ class Camera extends JPanel {
 
         //player.getComponent(AttackComponent.class).setAttacking(weapon.isAnimating());
 
-        if(keyboard.isKeyPressed(KeyEvent.VK_Q)){
-            String saveName = "Save_" + System.currentTimeMillis();
-            saveManager.saveGame(saveName, player.getComponent(PositionComponent.class).x,
-                    player.getComponent(PositionComponent.class).y,
-                    player.getComponent(HealthComponent.class).getHealth(),
-                     level, enemies, items, inventory);
-            System.out.println("Game saved as: " + saveName);
-        }
         if(keyboard.isKeyPressed(KeyEvent.VK_E)){
             saveManager.printDatabase();
         }
 
-        if(keyboard.isKeyPressed(KeyEvent.VK_L)){
-            loadGame();
-        }
+//        if(keyboard.isKeyPressed(KeyEvent.VK_L)){
+//            loadGame();
+//        }
     }
 
     public void keyPressed(int keyCode) {
@@ -530,11 +522,20 @@ class Camera extends JPanel {
         }
     }
 
-    public void loadGame()
+    public void saveGame(){
+        String saveName = "Save_" + System.currentTimeMillis();
+        saveManager.saveGame(saveName, player.getComponent(PositionComponent.class).x,
+                player.getComponent(PositionComponent.class).y,
+                player.getComponent(HealthComponent.class).getHealth(),
+                level, enemies, items, inventory);
+        System.out.println("Game saved as: " + saveName);
+    }
+
+    public void loadGame(String saveName)
     {
         GameState gameState;
         try {
-            gameState = saveManager.loadGame("Save_1716191920509", textureManager);
+            gameState = saveManager.loadGame(saveName, textureManager);
 
             level = gameState.level - 1;
             loadNextLevel();

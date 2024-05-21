@@ -133,8 +133,8 @@ public class SaveManager {
         }
     }
 
-    public List<String> loadSaveNames() throws SQLException {
-        List<String> names = new ArrayList<>();
+    public ArrayList<String> loadSaveNames() throws SQLException {
+        ArrayList<String> names = new ArrayList<>();
         String sql = "SELECT name FROM saves;";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
