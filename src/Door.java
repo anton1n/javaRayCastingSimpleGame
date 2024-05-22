@@ -11,7 +11,9 @@ public class Door extends Entity {
         this.requiredItemKey = requiredItemKey;
         addComponent(new PositionComponent(x, y));
         //addComponent(new SpriteComponent(x, y, false, 8));
-        int tileId=8;
+        if(name.compareTo("door")==0) tileId=9;
+        else tileId=11;
+
         addComponent(new DimensionsComponent(2, 2));
         map[(int)x][(int)y] = tileId;
         this.name = name;
@@ -23,11 +25,10 @@ public class Door extends Entity {
 
     public void setOpen(boolean open, int[][]map) {
         this.isOpen = open;
-        //getComponent(SpriteComponent.class).setTextureId(open ? 9 : 8);
         if(isOpen){
             map[(int)getComponent(PositionComponent.class).x][(int)getComponent(PositionComponent.class).y]=0;
-            tileId = 9;
-            addComponent(new SpriteComponent(getComponent(PositionComponent.class).x, getComponent(PositionComponent.class).y, false, 9));
+            tileId++;
+            addComponent(new SpriteComponent(getComponent(PositionComponent.class).x + 0.5, getComponent(PositionComponent.class).y, false, tileId));
         }
     }
 
@@ -56,4 +57,6 @@ public class Door extends Entity {
     public SpriteComponent getSprite() {
         return getComponent(SpriteComponent.class);
     }
+
+    public String getName(){return name;}
 }

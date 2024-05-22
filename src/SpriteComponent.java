@@ -18,7 +18,7 @@ public class SpriteComponent implements Component {
     private BufferedImage[] frames;
     private int currentFrame;
     private int totalFrames;
-    private long frameDuration;
+    public long frameDuration;
     private long lastFrameTime;
     private long longFrameDuration;
     private Map<State, Integer> frameCounts = new HashMap<>();
@@ -88,6 +88,9 @@ public class SpriteComponent implements Component {
             int stateRow = 0;
             int col = 0;
             for (State state : State.values()) {
+                if(!framesPerState.containsKey(state)){
+                    continue;
+                }
                 int frameCount = framesPerState.get(state);
                 System.out.println("Loading " + frameCount + " frames for state: " + state);
 
@@ -139,6 +142,9 @@ public class SpriteComponent implements Component {
             currentState = newState;
             currentFrame = 0;
         }
+
+        if(frameDuration==0)
+            return;
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastFrameTime > frameDuration) {

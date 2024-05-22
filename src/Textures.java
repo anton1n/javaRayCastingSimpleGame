@@ -104,11 +104,11 @@ public class Textures {
         int[][] map = new int[mapHeight][mapWidth];
         int val;
 
-        EnumMap<State, Integer> frameCounts = new EnumMap<>(State.class);
-        frameCounts.put(State.attacking, 6);
-        frameCounts.put(State.idle, 5);
-        frameCounts.put(State.damaged, 1);
-        frameCounts.put(State.walking, 4);
+//        EnumMap<State, Integer> frameCounts = new EnumMap<>(State.class);
+//        frameCounts.put(State.attacking, 6);
+//        frameCounts.put(State.idle, 5);
+//        frameCounts.put(State.damaged, 1);
+//        frameCounts.put(State.walking, 4);
 
         try (Scanner scanner = new Scanner(new File(filePath))) {
             for (int i = 0; i < mapHeight; i++) {
@@ -117,14 +117,26 @@ public class Textures {
                         val = scanner.nextInt();
 
                         if(val == 99){
-                            enemies.add(new Enemy(i, j, "skeletonSprites1.png", frameCounts, 105, 155, 100));                            map[i][j] = 0;
+                            map[i][j] = 0;
+                            enemies.add(EnemyFactory.createEnemy("skelethon", i, j));
+
+                        }
+                        else if(val == 98){
+                            map[i][j] = 0;
+                            enemies.add(EnemyFactory.createEnemy("phantom", i, j));
+
+                        }
+                        else if(val == 97){
+                            map[i][j] = 0;
+                            enemies.add(EnemyFactory.createEnemy("stalker", i, j));
+
                         }
                         else if(val == 88){
-                            items.add(new Item(i, j, 4, tex, "key"));
+                            items.add(new Item(i, j, 13, tex, "key"));
                             map[i][j] = 0;
                         }
                         else if(val == 87){
-                            items.add(new Item(i, j, 4, tex, "final_key"));
+                            items.add(new Item(i, j, 14, tex, "final_key"));
                             map[i][j] = 0;
                         }
                         else if(val == 77){

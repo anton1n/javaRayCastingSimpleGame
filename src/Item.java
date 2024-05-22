@@ -38,5 +38,9 @@ public class Item extends Entity {
 
     public String getItemName(){return itemName;}
 
+    public void check(){
+        itemName=" ";
+    }
+
     public int getTexId(){return texId;}
 }

@@ -13,9 +13,11 @@ public class SaveManager {
             initializeDatabase();
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
+        } catch (GameException e) {
+            throw new RuntimeException(e);
         }
     }
-    private void initializeDatabase() throws SQLException {
+    private void initializeDatabase() throws  GameException {
         try (Statement stmt = conn.createStatement()) {
             String sql = "CREATE TABLE IF NOT EXISTS saves (" +
                     "id INTEGER PRIMARY KEY," +
@@ -28,7 +30,7 @@ public class SaveManager {
             stmt.execute(sql);
             sql = "CREATE TABLE IF NOT EXISTS enemies (" +
                     "saveId INTEGER," +
-                    //"enemyId INTEGER," +
+                    "name TEXT," +
                     "health INTEGER," +
                     "positionX DOUBLE," +
                     "positionY DOUBLE," +
@@ -48,10 +50,12 @@ public class SaveManager {
                     "positionY DOUBLE," +
                     "FOREIGN KEY(saveId) REFERENCES saves(id));";
             stmt.execute(sql);
+        }catch (SQLException e) {
+            throw new GameException(GameException.ErrorCode.INITIALIZATION_ERROR, "Failed to initialize database", e);
         }
     }
 
-    public void saveGame(String name, double playerX, double playerY, int health, int level, List<Enemy> enemies, List<Item> items, Inventory inventory) {
+    public void saveGame(String name, double playerX, double playerY, int health, int level, List<Enemy> enemies, List<Item> items, Inventory inventory) throws GameException {
         try {
             conn.setAutoCommit(false);
             String sql = "INSERT INTO saves (name, playerX, playerY, health,  level) VALUES (?, ?, ?, ?, ?);";
@@ -80,8 +84,7 @@ public class SaveManager {
             } catch (SQLException ex) {
                 System.out.println(ex.getMessage());
             }
-            System.out.println(e.getMessage());
-        } finally {
+            throw new GameException(GameException.ErrorCode.SAVE_GAME_ERROR, "Failed to save game", e);        } finally {
             try {
                 conn.setAutoCommit(true);
             } catch (SQLException e) {
@@ -91,14 +94,15 @@ public class SaveManager {
     }
 
     private void saveEnemies(long saveId, List<Enemy> enemies) throws SQLException {
-        String sql = "INSERT INTO enemies (saveId, health, positionX, positionY) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO enemies (saveId, name, health, positionX, positionY) VALUES (?, ?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (Enemy enemy : enemies) {
                 pstmt.setLong(1, saveId);
                 //pstmt.setInt(2, enemy.getId());
-                pstmt.setInt(2, enemy.getComponent(HealthComponent.class).getHealth());
-                pstmt.setDouble(3, enemy.getComponent(PositionComponent.class).x);
-                pstmt.setDouble(4, enemy.getComponent(PositionComponent.class).y);
+                pstmt.setString(2, enemy.name);
+                pstmt.setInt(3, enemy.getComponent(HealthComponent.class).getHealth());
+                pstmt.setDouble(4, enemy.getComponent(PositionComponent.class).x);
+                pstmt.setDouble(5, enemy.getComponent(PositionComponent.class).y);
                 pstmt.addBatch();
             }
             pstmt.executeBatch();
@@ -234,11 +238,13 @@ public class SaveManager {
             pstmt.setInt(1, saveId);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                enemies.add(new Enemy(
-                        rs.getDouble("positionX"),
-                        rs.getDouble("positionY"),
-                        9
-                ));
+                String name = rs.getString("name");
+                int health = rs.getInt("health");
+                double x = rs.getDouble("positionX");
+                double y = rs.getDouble("positionY");
+                Enemy enemy = EnemyFactory.createEnemy(name, x, y);
+                enemy.setHealth(health);
+                enemies.add(enemy);
             }
         }
         return enemies;

@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.List;
 
 class Camera extends JPanel {
-    private int[][] map;
+    public static int[][] map;
 
     private Textures textureManager;
 
@@ -46,11 +46,17 @@ class Camera extends JPanel {
 
     private SaveManager saveManager;
 
+    public boolean gameFinished = false;
+    public boolean playerDead = false;
+
+    private boolean jumpScare = false;
+    private long jumpScareEndTime = 0;
+
     public Camera() throws FileNotFoundException {
 
         this.textureManager= new Textures();
-        textureManager.loadTiles("tilemap01.png");
-        textureManager.loadTile("enemy01.png");
+        textureManager.loadTiles("allTiles.png");
+        //textureManager.loadTile("enemy01.png");
 
         //player = new Player(22, 12, -1, 0, 0, 0.66);
         player = new Player(20, 8, -1, 0, 0, 0.66);
@@ -119,6 +125,15 @@ class Camera extends JPanel {
 
         render(offscreenImage.createGraphics());
         g.drawImage(offscreenImage, 0, 0, this);
+
+        if (jumpScare) {
+            if (System.currentTimeMillis() < jumpScareEndTime) {
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, getWidth(), getHeight());
+            } else {
+                jumpScare = false;
+            }
+        }
         //weapon.render(g);
     }
 
@@ -286,6 +301,14 @@ class Camera extends JPanel {
             enemy.update(player);
         }
 
+        for (Enemy enemy : enemies) {
+            if (enemy instanceof Stalker && ((Stalker) enemy).isJumpScareActive()) {
+                jumpScare = true;
+                jumpScareEndTime = System.currentTimeMillis() + 2000;  // 2 seconds of jumpscare
+                break;
+            }
+        }
+
 //        Iterator<Item> itemIterator = items.iterator();
 //        while (itemIterator.hasNext()) {
 //            Item item = itemIterator.next();
@@ -310,7 +333,7 @@ class Camera extends JPanel {
             PositionComponent doorPos = door.getComponent(PositionComponent.class);
             if (CollisionManager.checkCollision(playerBounds, door.getBounds())) {
                 door.interact(inventory, map);
-                if(door.isOpen()){
+                if(door.isOpen() && door.getName().compareTo("final_door") == 0){
                     loadNextLevel();
                     break;
                 }
@@ -321,6 +344,9 @@ class Camera extends JPanel {
         if (keyboard.isKeyPressed(KeyEvent.VK_W)) {
             if (map[(int) (pos.x + player.getDirX() * moveSpeed)][(int) (pos.y)] == 0)
                 pos.x += player.getDirX() * moveSpeed;
+            else{
+                pos.x -= player.getDirX();
+            }
             if (map[(int) (pos.x)][(int) (pos.y + player.getDirY() * moveSpeed)] == 0)
                 pos.y += player.getDirY() * moveSpeed;
 
@@ -364,9 +390,9 @@ class Camera extends JPanel {
             saveManager.printDatabase();
         }
 
-//        if(keyboard.isKeyPressed(KeyEvent.VK_L)){
-//            loadGame();
-//        }
+        if(keyboard.isKeyPressed(KeyEvent.VK_L)){
+            gameFinished=true;
+        }
     }
 
     public void keyPressed(int keyCode) {
@@ -516,6 +542,9 @@ class Camera extends JPanel {
             doors.clear();
 
             this.map = textureManager.readMap(next_level, enemies, sprites, items, textureManager, doors);
+            for (Item item : items){
+                item.check();
+            }
             System.out.println("Next level loaded successfully.");
         } catch (FileNotFoundException e) {
             System.out.println("Failed to load the next level: " + e.getMessage());
@@ -524,11 +553,16 @@ class Camera extends JPanel {
 
     public void saveGame(){
         String saveName = "Save_" + System.currentTimeMillis();
-        saveManager.saveGame(saveName, player.getComponent(PositionComponent.class).x,
-                player.getComponent(PositionComponent.class).y,
-                player.getComponent(HealthComponent.class).getHealth(),
-                level, enemies, items, inventory);
-        System.out.println("Game saved as: " + saveName);
+        try {
+            saveManager.saveGame(saveName, player.getComponent(PositionComponent.class).x,
+                    player.getComponent(PositionComponent.class).y,
+                    player.getComponent(HealthComponent.class).getHealth(),
+                    level, enemies, items, inventory);
+            System.out.println("Game saved as: " + saveName);
+        }catch(GameException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            System.err.println(e);
+        }
     }
 
     public void loadGame(String saveName)
@@ -556,6 +590,23 @@ class Camera extends JPanel {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean isPlayerDead() {
+        //return player.getComponent(HealthComponent.class).getHealth() <= 0;
+        return playerDead;
+    }
+
+    public boolean isGameFinished(){
+        return gameFinished;
+    }
+
+    public static boolean isWalkable(int x, int y) {
+        if (x < 0 || x >= map.length || y < 0 || y >= map[0].length) {
+            return false;
+        }
+        return map[x][y] == 0;
+    }
+
 
     public void startGameLoop() {
         Thread gameThread = new Thread(() -> {

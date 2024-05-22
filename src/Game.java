@@ -16,7 +16,9 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
 
     private CardLayout cardLayout = new CardLayout();
     private JPanel cardPanel = new JPanel(cardLayout);
-    private TitleScreen titleScreen = new TitleScreen();
+    private Screen titleScreen = new TitleScreen();
+    private Screen deathScreen = new DeathScreen();
+    private Screen finishedScreen = new FinishedScreen();
 
     private String currentCard = "Title";
 
@@ -26,7 +28,6 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
 
     private Inventory inventory = new Inventory();
     private InventoryPanel inventoryPanel;
-
 
     @Override
     public void onSave() {
@@ -89,6 +90,14 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
         titleScreen.setFocusable(true);
         cardPanel.add(titleScreen, "Title");
 
+        deathScreen.addKeyListener(this);
+        deathScreen.setFocusable(true);
+        cardPanel.add(deathScreen, "Death");
+
+        finishedScreen.addKeyListener(this);
+        finishedScreen.setFocusable(true);
+        cardPanel.add(finishedScreen, "Finish");
+
 
 
         canvas = new Camera();
@@ -117,6 +126,9 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+
+        checkGameConditions();
+
         switch (currentCard) {
             case "Title":
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -144,6 +156,24 @@ public class Game extends JFrame implements KeyListener, MenuActionListener {
                     menuPanel.keyPressed(e);  
                 }
                 break;
+            case "Death":
+            case "Finish":
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    onExit();
+                }
+                break;
+        }
+    }
+
+    public void checkGameConditions() {
+        if (canvas.isPlayerDead()) {
+            cardLayout.show(cardPanel, "Death");
+            deathScreen.requestFocusInWindow();
+            currentCard = "Death";
+        } else if (canvas.isGameFinished()) {
+            cardLayout.show(cardPanel, "Finish");
+            finishedScreen.requestFocusInWindow();
+            currentCard = "Finish";
         }
     }
 
