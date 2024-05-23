@@ -109,7 +109,7 @@ class Camera extends JPanel {
 
         inventory = new Inventory();
 
-        this.map = textureManager.readMap(System.getProperty("user.dir")+"/levels/level1.txt", enemies, sprites, items, textureManager, doors);
+        this.map = textureManager.readMap(System.getProperty("user.dir")+"/levels/level2.txt", enemies, sprites, items, textureManager, doors);
 
         this.saveManager = new SaveManager("saves.db");
 

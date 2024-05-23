@@ -10,7 +10,7 @@ public class Stalker extends Enemy{
         return frameCounts;
     }
     public Stalker(double x, double y) {
-        super(x, y, 5.0, 0.05, System.getProperty("user.dir")+"assets/textures/stalkerSprite.png", createFrameCounts(), 310, 315, 0, "stalker");
+        super(x, y, 5.0, 0.05, System.getProperty("user.dir")+"/assets/textures/stalkerSprite.png", createFrameCounts(), 310, 315, 0, "stalker");
     }
 
     @Override
