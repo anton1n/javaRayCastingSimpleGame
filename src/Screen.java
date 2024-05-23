@@ -28,6 +28,11 @@ public class Screen extends JPanel {
             g.drawImage(background, 0, 0, this.getWidth(), this.getHeight(), this);
             drawString(g);
         }
+        else{
+            g.setColor(Color.RED);
+            g.fillRect(0, 0, getWidth(), getHeight());
+            drawString(g);
+        }
     }
 
     public void drawString(Graphics g){
@@ -42,8 +47,10 @@ public class Screen extends JPanel {
     }
 
     private void loadBackgroundImage(String imagePath) {
+        File file = new File(System.getProperty("user.dir")+imagePath);
         try {
-            background = ImageIO.read(new File(imagePath));
+            System.out.println("Attempting to load: " + file.getAbsolutePath());
+            background = ImageIO.read(file);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Unable to load background image.");

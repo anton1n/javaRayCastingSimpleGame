@@ -12,8 +12,8 @@ public class Phantom extends Enemy {
     }
 
     public Phantom(double x, double y) {
-        super(x, y, 5.0, 0.05, "phantomSprites.png", createFrameCounts(), 105, 155, 100, "phantom");
-        name = "Chaser";
+        super(x, y, 5.0, 0.05, System.getProperty("user.dir")+"assets/textures/phantomSprites.png", createFrameCounts(), 105, 155, 100, "phantom");
+        //name = "phantom";
     }
 
     @Override

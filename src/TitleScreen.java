@@ -7,6 +7,6 @@ import java.awt.image.BufferedImage;
 
 public class TitleScreen extends Screen {
     public TitleScreen() {
-        super("Press enter to start!", "titleScreen.png");
+        super("Press enter to start!", "/assets/textures/titleScreen.png");
     }
 }

@@ -14,7 +14,7 @@ public class Player extends Entity {
         this.addComponent(new PositionComponent(startX, startY));
         this.addComponent(new DimensionsComponent(2, 2));
         this.addComponent(new AttackComponent(1, 0));
-        addComponent(new HealthComponent(100, this::onDeath));
+        addComponent(new HealthComponent(10, this::onDeath));
     }
 
     public double getDirX() { return dirX; }

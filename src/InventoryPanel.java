@@ -12,7 +12,7 @@ public class InventoryPanel extends JPanel {
     public InventoryPanel(Inventory inventory, MenuActionListener listener) {
         this.actionListener = listener;
         this.inventory = inventory;
-        setPreferredSize(new Dimension(400, 300)); // Set size as needed
+        setPreferredSize(new Dimension(400, 300));
         setBackground(Color.DARK_GRAY);
         setFocusable(true);
 

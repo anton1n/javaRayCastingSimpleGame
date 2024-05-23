@@ -54,8 +54,10 @@ class Camera extends JPanel {
 
     public Camera() throws FileNotFoundException {
 
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+
         this.textureManager= new Textures();
-        textureManager.loadTiles("allTiles.png");
+        textureManager.loadTiles(System.getProperty("user.dir")+"/assets/textures/allTiles.png");
         //textureManager.loadTile("enemy01.png");
 
         //player = new Player(22, 12, -1, 0, 0, 0.66);
@@ -63,7 +65,7 @@ class Camera extends JPanel {
         keyboard = new KeyboardComponent();
 
         //weapon = new Weapon("slash.png", 4 ,100, 125, 129 );
-        weapon = new Weapon("swordAnim.png", 4 ,100, 378
+        weapon = new Weapon(System.getProperty("user.dir")+"/assets/textures/swordAnim.png", 4 ,100, 378
                 , 283 );
 
         setDoubleBuffered(true);
@@ -76,7 +78,7 @@ class Camera extends JPanel {
 
         //meh
         try {
-            img1 = ImageIO.read(new File("forest.png"));
+            img1 = ImageIO.read(new File(System.getProperty("user.dir")+"/assets/textures/forest.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -100,14 +102,14 @@ class Camera extends JPanel {
         //enemies.add(new Enemy(15, 15, 9));
 
         SoundManager soundManager = new SoundManager();
-        soundManager.loadSound("background", "backgroundMusic.wav");
+        soundManager.loadSound("background", System.getProperty("user.dir")+"/assets/sounds/backgroundMusic.wav");
         soundManager.loopSound("background");
 
        // items.add(new Item(22, 20, 4, textureManager));
 
         inventory = new Inventory();
 
-        this.map = textureManager.readMap("level1.txt", enemies, sprites, items, textureManager, doors);
+        this.map = textureManager.readMap(System.getProperty("user.dir")+"/levels/level1.txt", enemies, sprites, items, textureManager, doors);
 
         this.saveManager = new SaveManager("saves.db");
 
@@ -134,6 +136,9 @@ class Camera extends JPanel {
                 jumpScare = false;
             }
         }
+
+//        g.setColor(Color.WHITE);
+//        g.drawString("Player life: "+Integer.toString(player.getComponent(HealthComponent.class).getHealth()), 100, getWidth()-100);
         //weapon.render(g);
     }
 
@@ -283,7 +288,7 @@ class Camera extends JPanel {
                     if (enemy.getComponent(HealthComponent.class).getHealth() <= 0) {
                         toRemove.add(enemy);
                     }
-                    System.out.println("Enemy hit! ");
+                    //System.out.println("Enemy hit! ");
                     player.getComponent(AttackComponent.class).setAttacking(false);
                 }
             }
@@ -323,7 +328,7 @@ class Camera extends JPanel {
             if (CollisionManager.checkCollision(playerBounds, item.getBounds())) {
                 inventory.addItem(item);
                 items.remove(item);
-                System.out.println("Item collected!");
+                //System.out.println("Item collected!");
                 break;
             }
         }
@@ -334,6 +339,10 @@ class Camera extends JPanel {
             if (CollisionManager.checkCollision(playerBounds, door.getBounds())) {
                 door.interact(inventory, map);
                 if(door.isOpen() && door.getName().compareTo("final_door") == 0){
+                    if(level>=3){
+                        gameFinished=true;
+                        break;
+                    }
                     loadNextLevel();
                     break;
                 }
@@ -393,6 +402,13 @@ class Camera extends JPanel {
         if(keyboard.isKeyPressed(KeyEvent.VK_L)){
             gameFinished=true;
         }
+
+        if(keyboard.isKeyPressed(KeyEvent.VK_P)){
+            //System.out.println(level);
+            level++;
+        }
+
+        if(player.getComponent(HealthComponent.class).getHealth() <= 0){playerDead=true;}
     }
 
     public void keyPressed(int keyCode) {

@@ -3,7 +3,7 @@ import java.awt.*;
 
 public class FinishedScreen extends Screen {
     public FinishedScreen(){
-        super("Game finished!", "forest.png");
+        super("Game finished!", "/assets/textures/forest.png");
     }
 
 }

@@ -24,7 +24,7 @@ public class MenuPanel extends JPanel implements KeyListener {
         this.actionListener = listener;
         setFocusable(true);
         try {
-            menuImage = ImageIO.read(new File("protagonist01.png"));
+            menuImage = ImageIO.read(new File(System.getProperty("user.dir")+"/assets/textures/protagonist01.png"));
         } catch (IOException e) {
             System.out.println("Unable to load image: " + e.getMessage());
             menuImage = null;
