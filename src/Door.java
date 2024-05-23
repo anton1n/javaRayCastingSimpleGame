@@ -39,12 +39,12 @@ public class Door extends Entity {
     public void interact(Inventory inventory, int[][] map) {
         if (!isOpen && inventory.hasItem(requiredItemKey)) {
             setOpen(true, map);
-            System.out.println("Door opened!");
-        } else if (isOpen){
-            System.out.println("Door is already opened! ");
-        } else{
-            System.out.println("The door is locked. Required item: " + requiredItemKey);
-        }
+            System.out.println("Door opened!");}
+//        } else if (isOpen){
+//            System.out.println("Door is already opened! ");
+//        } else{
+//            //System.out.println("The door is locked. Required item: " + requiredItemKey);
+//        }
     }
 
     public Rectangle getBounds() {

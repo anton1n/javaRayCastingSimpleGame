@@ -551,11 +551,12 @@ class Camera extends JPanel {
         System.out.println("Loading next level...");
     try {
             level++;
-            String next_level = "level" + Integer.toString(level) + ".txt";
+            String next_level = System.getProperty("user.dir") + "/levels/level" + Integer.toString(level) + ".txt";
 
             enemies.clear();
             sprites.clear();
             doors.clear();
+
 
             this.map = textureManager.readMap(next_level, enemies, sprites, items, textureManager, doors);
             for (Item item : items){
